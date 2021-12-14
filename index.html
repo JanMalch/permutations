@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="description" content="Svelte demo app" />
+		<link rel="icon" href="/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Permutations</title>
+
+		
+
+		<link rel="modulepreload" href="/permutations/_app/start-1214712f.js">
+		<link rel="modulepreload" href="/permutations/_app/chunks/vendor-3e1a3a40.js">
+		<link rel="modulepreload" href="/permutations/_app/pages/__layout.svelte-a4618762.js">
+		<link rel="modulepreload" href="/permutations/_app/pages/index.svelte-f429ea5a.js">
+		<link rel="stylesheet" href="/permutations/_app/assets/start-61d1577b.css">
+		<link rel="stylesheet" href="/permutations/_app/assets/vendor-88f2bfd4.css">
+		<link rel="stylesheet" href="/permutations/_app/assets/pages/__layout.svelte-7c9f0c6c.css">
+		<link rel="stylesheet" href="/permutations/_app/assets/pages/index.svelte-80cf5bf8.css">
+
+		<script type="module">
+			import { start } from "/permutations/_app/start-1214712f.js";
+			start({
+				target: document.querySelector("#svelte"),
+				paths: {"base":"/permutations","assets":""},
+				session: {},
+				host: location.host,
+				route: true,
+				spa: false,
+				trailing_slash: "never",
+				hydrate: {
+					status: 200,
+					error: null,
+					nodes: [
+						import("/permutations/_app/pages/__layout.svelte-a4618762.js"),
+						import("/permutations/_app/pages/index.svelte-f429ea5a.js")
+					],
+					page: {
+						host: location.host, // TODO this is redundant
+						path: "\u002F",
+						query: new URLSearchParams(""),
+						params: {}
+					}
+				}
+			});
+		</script>
+	</head>
+	<body>
+		<div id="svelte">
+
+
+
+
+<header class="svelte-14kadcy"><svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 0 24 24" width="48px" fill="#5db785"><path d="M0 0h24v24H0z" fill="none"></path><path d="M5 13h14v-2H5v2zm-2 4h14v-2H3v2zM7 7v2h14V7H7z"></path></svg>
+	<h1>Permutations</h1>
+</header>
+
+<main class="svelte-zjtpyz"><section id="input" class="svelte-bpwazc"><textarea  aria-label="Main input" class="svelte-bpwazc">Hello " " "my friend"!</textarea>
+
+  <div>↓</div>
+
+  <div id="parsed-inputs" class="svelte-bpwazc"><span class="svelte-bpwazc">H</span><span class="svelte-bpwazc">e</span><span class="svelte-bpwazc">l</span><span class="svelte-bpwazc">l</span><span class="svelte-bpwazc">o</span><span class="svelte-bpwazc"> </span><span class="svelte-bpwazc">my friend</span><span class="svelte-bpwazc">!</span></div>
+
+  <div style="text-align: center; line-height: 1.65"><strong>7 of 8</strong> elements are
+    unique.<br>
+    There are <strong>20,160 permutations</strong> without repetitions.
+  </div>
+
+  <div id="input-actions"><button id="init"  class="svelte-bpwazc">Init</button>
+    <button id="reset" disabled class="svelte-bpwazc">Reset</button></div></section>
+
+
+<section id="output" class="svelte-bpwazc"><div id="output-options" class="svelte-bpwazc">
+
+    <input placeholder="Filter results that include, -exclude, s:tart or e:nd with ..." id="filter" disabled class="svelte-bpwazc" value="">
+
+    <div id="x-next" class="svelte-bpwazc"><button disabled class="xnext-control svelte-bpwazc">-
+      </button>
+      <input placeholder="Next ..." type="number" max="20160" min="1" disabled class="svelte-bpwazc" value="100">
+      <button disabled class="xnext-control svelte-bpwazc">+</button></div>
+    <button disabled id="next" class="svelte-bpwazc">Load more</button></div>
+
+  <p>Showing <strong>0 of 0</strong> computed
+    permutations.</p>
+
+  
+</section></main>
+
+<footer class="svelte-zjtpyz"><small>Created by
+	<a href="https://github.com/JanMalch" rel="noopener">JanMalch</a>
+	·
+		Logo by <a href="https://fonts.google.com/icons?selected=Material+Icons&icon.query=clear+all" rel="noopener">Material Icons</a>
+	·
+	<a href="https://github.com/JanMalch/permutations" rel="noopener">Source Code</a>
+	·
+	© JanMalch, 2021</small>
+</footer>
+
+
+
+			
+		</div>
+	</body>
+</html>
