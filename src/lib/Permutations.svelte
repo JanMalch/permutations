@@ -223,7 +223,7 @@
     <!-- TODO: validator: all chars must be included in textarea input to ignore case matching (did you mean _uppercase_ A?) -->
 
     <input placeholder="Filter results that include, -exclude, s:tart or e:nd with ..." bind:value={filter} id="filter"
-           disabled="{!initialised || loading}">
+           disabled="{!initialised}">
 
     <div id="x-next">
       <button on:click={() => xNext = Math.max(1, xNext - 100)} disabled="{!initialised || done || loading}"
