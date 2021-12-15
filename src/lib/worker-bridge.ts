@@ -19,7 +19,7 @@ export function initGenerator(inputs: any[]): Promise<void> {
   });
 }
 
-export function getNextValue<T extends any[] = any[]>(): Promise<IteratorYieldResult<T>> {
+export function getNextValue(): Promise<IteratorYieldResult<string[]>> {
   return new Promise((resolve, reject) => {
     worker.addEventListener('message', ({ data: { ok, result } }) => {
       if (ok) {

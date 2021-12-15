@@ -1,69 +1,32 @@
 <script lang="ts">
-  import { getNextValue, initGenerator, resetGenerator } from "$lib/worker-bridge";
+  import { coerceArray, createFilterPredicate } from "$lib/utils";
+  import { ValueTracker } from "$lib/value-tracker";
+  import { getNextValue, getNextValues, initGenerator, resetGenerator } from "$lib/worker-bridge";
   import VirtualList from "@sveltejs/svelte-virtual-list";
   import searchQuery, { ISearchParserDictionary, SearchParserOffset } from "search-query-parser";
 
   let input = "Hello \" \" \"my friend\"!";
   let filter = "";
-  let loading = false;
+  let started = false;
+  let paused = false;
   let done = false;
-  let initialised = false;
-  let xNext = 100;
-  let totalComputations = 0;
-
-  let _results = new Set();
   let results = [];
+  let totalComputations = 0;
+  let permutations = 0;
+  let permutationsWithoutRepetitions = 0;
+
+  const valueTracker = new ValueTracker();
 
   $: parsedInput = parseInput(input);
+  $: {
+    valueTracker.init(parsedInput.text);
+    permutations = valueTracker.permutations;
+    permutationsWithoutRepetitions = valueTracker.permutationsWithoutRepetitions;
+  }
   $: parsedFilter = parseFilter(filter);
-  $: filteredResults = !filter ? results : results.filter(result => {
-    if (parsedFilter.exclude.s != null && coerceArray<string>(parsedFilter.exclude.s).some(excludedStart => result.startsWith(excludedStart))) {
-      return false;
-    }
-    if (parsedFilter.s != null && coerceArray<string>(parsedFilter.s).every(requiredStart => !result.startsWith(requiredStart))) {
-      return false;
-    }
-    if (parsedFilter.exclude.e != null && coerceArray<string>(parsedFilter.exclude.e).some(excludedEnd => result.endsWith(excludedEnd))) {
-      return false;
-    }
-    if (parsedFilter.e != null && coerceArray<string>(parsedFilter.e).every(requiredEnd => !result.endsWith(requiredEnd))) {
-      return false;
-    }
-    if (parsedFilter.exclude.text != null && coerceArray<string>(parsedFilter.exclude.text).some(excludedText => result.includes(excludedText))) {
-      return false;
-    }
-    if (parsedFilter.text != null && coerceArray<string>(parsedFilter.text).every(requiredText => !result.includes(requiredText))) {
-      return false;
-    }
-    return true;
-  });
+  $: filterPredicate = createFilterPredicate(parsedFilter);
+  $: filteredResults = !filter ? results : results.filter(filterPredicate);
   $: uniqueInputCount = new Set(parsedInput.text).size;
-  $: maxPermutationsWithRepetitions = factorial(parsedInput.text.length);
-  $: maxPermutations = maxPermutationsWithRepetitions / individualCounts().reduce((acc, count) => acc * factorial(count), 1);
-
-  function coerceArray<T>(value: T | T[]): T[] {
-    return Array.isArray(value) ? value : [value];
-  }
-
-  function factorial(value: number): number {
-    if (value <= 1) {
-      return 1;
-    }
-    let result = value;
-    while (value > 1) {
-      value--;
-      result *= value;
-    }
-    return result;
-  }
-
-  function individualCounts(): number[] {
-    const counts = new Map<string, number>();
-    for (const text of parsedInput.text) {
-      counts.set(text, (counts.get(text) ?? 0) + 1);
-    }
-    return Array.from(counts.values());
-  }
 
   function parseInput(query: string): { [p: string]: any; offsets?: SearchParserOffset[]; exclude?: ISearchParserDictionary; text: string[] } {
     const parsed = searchQuery.parse(query, {
@@ -98,103 +61,53 @@
     });
   }
 
-  async function init() {
-    loading = true;
-    await initGenerator(parsedInput.text).then(() => {
-      filter = "";
-      done = false;
-      loading = false;
-      initialised = true;
-      _results = new Set();
-      results = [];
-      xNext = 100;
-      totalComputations = 0;
-    });
-    await next();
-    xNext = Math.floor(maxPermutations * 0.1);
-  }
-
-  /**
-   * @author https://stackoverflow.com/a/28755126
-   */
-  function binarySearch<T>(items: T[], target: T, comparator: (a: T, b: T) => number): number {
-    let l = 0;
-    let h = items.length - 1;
-    let m;
-    let comparison;
-    while (l <= h) {
-      m = (l + h) >>> 1; /* equivalent to Math.floor((l + h) / 2) but faster */
-      comparison = comparator(items[m], target);
-      if (comparison < 0) {
-        l = m + 1;
-      } else if (comparison > 0) {
-        h = m - 1;
-      } else {
-        return m;
-      }
-    }
-    return ~l;
-  }
-
-  /**
-   * @author https://stackoverflow.com/a/28755126
-   */
-  function binaryInsert<T>(items: T[], target: T, comparator: (a: T, b: T) => number): T[] {
-    const result = items.slice(0);
-    let i = binarySearch(result, target, comparator);
-    if (i >= 0) { /* if the binarySearch return value was zero or positive, a matching object was found */
-      return result;
-    } else { /* if the return value was negative, the bitwise complement of the return value is the correct index for this object */
-      i = ~i;
-    }
-    result.splice(i, 0, target);
-    return result;
+  async function start() {
+    started = true;
+    done = false;
+    await initGenerator(parsedInput.text);
+    next();
   }
 
   async function next() {
-    loading = true;
-    const initialXNext = xNext;
-    let remainingPermutations = maxPermutations - results.length;
-    for (let i = 0; i < initialXNext;) {
+    for (let i = 0; i <= valueTracker.permutations; i++) {
+      if (paused) {
+        break;
+      }
+      // FIXME: receive values in a bulk (~100) for better performance
       const result = await getNextValue();
       if (result.done) {
         done = true;
         break;
       }
-      totalComputations++;
       const value = result.value.join("");
-      if (!_results.has(value)) {
-        _results.add(value);
-        results = binaryInsert(results, value, (a, b) => a.localeCompare(b));
-        i++;
-          xNext = Math.min(xNext, --remainingPermutations);
+      if (valueTracker.add(value)) {
+        results = valueTracker.results.slice(0);
       }
+      totalComputations = valueTracker.totalComputations;
     }
-    if (!done) {
-      done = results.length === maxPermutations;
-    }
-    loading = false;
   }
 
+  function resume() {
+    paused = false;
+    next();
+  }
+
+  function pause() {
+    paused = true;
+  }
 
   function reset() {
-    loading = true;
-    resetGenerator().then(() => {
-      filter = "";
-      done = false;
-      initialised = false;
-      loading = false;
-      _results = new Set();
-      results = [];
-      xNext = 100;
-      totalComputations = 0;
-    });
+    started = false;
+    paused = false;
+    totalComputations = 0;
+    valueTracker.reset();
+    valueTracker.init(parsedInput.text)
   }
 </script>
 
 <section id="input">
 
-  <textarea bind:value={input} disabled="{loading || initialised}" aria-label="Main input"></textarea>
+  <textarea bind:value={input} disabled="{started}" aria-label="Main input"></textarea>
 
   <div>&darr;</div>
 
@@ -207,13 +120,28 @@
   <div id="analysis">
     <strong>{uniqueInputCount.toLocaleString()} of {parsedInput.text.length.toLocaleString()}</strong> elements are
     unique.<br />
-    There are {maxPermutationsWithRepetitions.toLocaleString()} possible permutations<br/>
-    and <strong>{maxPermutations.toLocaleString()}  without repetitions</strong>.
+    There are {permutations.toLocaleString()} possible permutations<br/>
+    and <strong>{permutationsWithoutRepetitions.toLocaleString()} without repetitions</strong>.
   </div>
 
   <div id="input-actions">
-    <button id="init" on:click={init} disabled="{loading || initialised}">Init</button>
-    <button id="reset" on:click={reset} disabled="{loading || !initialised}">Reset</button>
+    {#if !started}
+      <button on:click={start}>Start</button>
+      <button disabled>Pause</button>
+    {:else}
+      {#if done}
+        <button on:click={reset}>Reset</button>
+        <button disabled>Done!</button>
+        {:else}
+        {#if paused}
+          <button on:click={reset}>Reset</button>
+          <button on:click={resume}>Resume</button>
+        {:else}
+          <button disabled>Reset</button>
+          <button on:click={pause}>Pause</button>
+        {/if}
+        {/if}
+    {/if}
   </div>
 </section>
 
@@ -223,24 +151,21 @@
 
     <!-- TODO: validator: all chars must be included in textarea input to ignore case matching (did you mean _uppercase_ A?) -->
 
-    <input placeholder="Filter results that include, -exclude, s:tart or e:nd with ..." bind:value={filter} id="filter"
-           disabled="{!initialised}">
+    <input placeholder="Filter results that include, -exclude, s:tart or e:nd with ..." bind:value={filter} id="filter">
 
-    <div id="x-next">
-      <button on:click={() => xNext = Math.max(1, xNext - Math.floor(maxPermutations * 0.1))}
-              disabled="{!initialised || done || loading || (xNext === 1)}"
-              class="xnext-control">-
-      </button>
-      <input placeholder="Next ..." bind:value={xNext} type="number" max="{maxPermutations}" min="{1}"
-             disabled="{!initialised || done || loading}">
-      <button on:click={() => xNext = Math.min(maxPermutations - results.length, xNext + Math.floor(maxPermutations * 0.1))}
-              disabled="{!initialised || done || loading || (xNext === maxPermutations - results.length)}" class="xnext-control">+</button>
+  </div>
+  <div id="progress-bar">
+    { (valueTracker.permutations - totalComputations).toLocaleString() } left to check
+    <div role="progressbar"
+         aria-valuenow="{totalComputations}"
+         aria-valuemin="{0}"
+         aria-valuemax="{valueTracker.permutations}"
+         style="width: {totalComputations * 100 / valueTracker.permutations}%">
+      { totalComputations.toLocaleString() } computed
     </div>
-    <button on:click={next} disabled="{!initialised || done || loading}"
-            id="next">{ loading ? 'Computing ...' : done ? 'Done!' : 'Load more'}</button>
   </div>
 
-  {#if initialised}
+  {#if started}
   <div id="stats">
     <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24"
          height="24px" viewBox="0 0 24 24" width="24px" fill="#ffffff">
@@ -249,18 +174,6 @@
   </div>
   {/if}
 
-  {#if loading}
-  <div id="progress-bar">
-    { (maxPermutationsWithRepetitions - totalComputations).toLocaleString() } left to check
-    <div role="progressbar"
-         aria-valuenow="{totalComputations}"
-         aria-valuemin="{0}"
-         aria-valuemax="{maxPermutationsWithRepetitions}"
-         style="width: {totalComputations * 100 / maxPermutationsWithRepetitions}%">
-      { totalComputations.toLocaleString() } computed
-    </div>
-  </div>
-  {/if}
 
   {#if filteredResults.length > 0}
     <VirtualList items={filteredResults} let:item itemHeight="{32}" height="70vh">
@@ -308,16 +221,6 @@
 
     #filter {
         flex: 1;
-    }
-
-    #x-next {
-        display: flex;
-        align-items: center;
-    }
-
-    #x-next input {
-        width: 10ch;
-        text-align: center;
     }
 
     div[role=listitem] {
@@ -378,8 +281,8 @@
         position: absolute;
         top: 0;
         left: 0;
-        background: var(--primary-color);
         padding: 0 8px;
+    background: var(--primary-color);
         white-space: nowrap;
     }
 
