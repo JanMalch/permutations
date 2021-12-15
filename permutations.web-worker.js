@@ -29,7 +29,20 @@ self.addEventListener("message", event => {
       if (current == null) {
         postMessage({ type: "NEXT", ok: false });
       } else {
-        postMessage({ type: "NEXT", ok: true, result: current.next() });
+        const results = {
+          done: false,
+          values: [],
+        };
+        for (let i = 0; i < 200; i++) {
+          const next = current.next();
+          if (next.done) {
+            results.done = true;
+            break;
+          }
+          results.values.push(next.value.join(''));
+        }
+
+        postMessage({ type: "NEXT", ok: true, results });
       }
       break;
     case "RESET":

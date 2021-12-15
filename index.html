@@ -9,17 +9,17 @@
 
 		
 
-		<link rel="modulepreload" href="/permutations/_app/start-f7b5794f.js">
-		<link rel="modulepreload" href="/permutations/_app/chunks/vendor-3e1a3a40.js">
-		<link rel="modulepreload" href="/permutations/_app/pages/__layout.svelte-a4618762.js">
-		<link rel="modulepreload" href="/permutations/_app/pages/index.svelte-b7c21b24.js">
+		<link rel="modulepreload" href="/permutations/_app/start-59af6c94.js">
+		<link rel="modulepreload" href="/permutations/_app/chunks/vendor-7da06f31.js">
+		<link rel="modulepreload" href="/permutations/_app/pages/__layout.svelte-631fc494.js">
+		<link rel="modulepreload" href="/permutations/_app/pages/index.svelte-7e609124.js">
 		<link rel="stylesheet" href="/permutations/_app/assets/start-61d1577b.css">
 		<link rel="stylesheet" href="/permutations/_app/assets/vendor-88f2bfd4.css">
 		<link rel="stylesheet" href="/permutations/_app/assets/pages/__layout.svelte-7c9f0c6c.css">
-		<link rel="stylesheet" href="/permutations/_app/assets/pages/index.svelte-8463daa2.css">
+		<link rel="stylesheet" href="/permutations/_app/assets/pages/index.svelte-13c54694.css">
 
 		<script type="module">
-			import { start } from "/permutations/_app/start-f7b5794f.js";
+			import { start } from "/permutations/_app/start-59af6c94.js";
 			start({
 				target: document.querySelector("#svelte"),
 				paths: {"base":"/permutations","assets":""},
@@ -32,8 +32,8 @@
 					status: 200,
 					error: null,
 					nodes: [
-						import("/permutations/_app/pages/__layout.svelte-a4618762.js"),
-						import("/permutations/_app/pages/index.svelte-b7c21b24.js")
+						import("/permutations/_app/pages/__layout.svelte-631fc494.js"),
+						import("/permutations/_app/pages/index.svelte-7e609124.js")
 					],
 					page: {
 						host: location.host, // TODO this is redundant
@@ -55,35 +55,31 @@
 	<h1>Permutations</h1>
 </header>
 
-<main class="svelte-zjtpyz"><section id="input" class="svelte-1lk7bcg"><textarea  aria-label="Main input" class="svelte-1lk7bcg">Hello " " "my friend"!</textarea>
+<main class="svelte-zjtpyz"><section id="input" class="svelte-1az0vuu"><textarea  aria-label="Main input" class="svelte-1az0vuu">Hello " " "my friend"!</textarea>
 
   <div>↓</div>
 
-  <div id="parsed-inputs" class="svelte-1lk7bcg"><span class="svelte-1lk7bcg">H</span><span class="svelte-1lk7bcg">e</span><span class="svelte-1lk7bcg">l</span><span class="svelte-1lk7bcg">l</span><span class="svelte-1lk7bcg">o</span><span class="svelte-1lk7bcg"> </span><span class="svelte-1lk7bcg">my friend</span><span class="svelte-1lk7bcg">!</span></div>
+  <div id="parsed-inputs" class="svelte-1az0vuu"><span class="svelte-1az0vuu">H</span><span class="svelte-1az0vuu">e</span><span class="svelte-1az0vuu">l</span><span class="svelte-1az0vuu">l</span><span class="svelte-1az0vuu">o</span><span class="svelte-1az0vuu"> </span><span class="svelte-1az0vuu">my friend</span><span class="svelte-1az0vuu">!</span></div>
 
-  <div id="analysis" class="svelte-1lk7bcg"><strong>7 of 8</strong> elements are
+  <div id="analysis" class="svelte-1az0vuu"><strong>7 of 8</strong> elements are
     unique.<br>
     There are 40,320 possible permutations<br>
-    and <strong>20,160  without repetitions</strong>.
+    and <strong>20,160 without repetitions</strong>.
   </div>
 
-  <div id="input-actions"><button id="init"  class="svelte-1lk7bcg">Init</button>
-    <button id="reset" disabled class="svelte-1lk7bcg">Reset</button></div></section>
+  <div id="input-actions"><button class="svelte-1az0vuu">Start</button>
+      <button disabled class="svelte-1az0vuu">Pause</button></div></section>
 
 
-<section id="output" class="svelte-1lk7bcg"><div id="output-options" class="svelte-1lk7bcg">
+<section id="output" class="svelte-1az0vuu"><div id="output-options" class="svelte-1az0vuu">
 
-    <input placeholder="Filter results that include, -exclude, s:tart or e:nd with ..." id="filter" disabled class="svelte-1lk7bcg" value="">
-
-    <div id="x-next" class="svelte-1lk7bcg"><button disabled class="xnext-control svelte-1lk7bcg">-
-      </button>
-      <input placeholder="Next ..." type="number" max="20160" min="1" disabled class="svelte-1lk7bcg" value="100">
-      <button disabled class="xnext-control svelte-1lk7bcg">+</button></div>
-    <button disabled id="next" class="svelte-1lk7bcg">Load more</button></div>
+    <input placeholder="Filter results that include, -exclude, s:tart or e:nd with ..." id="filter" class="svelte-1az0vuu" value=""></div>
+  <div id="progress-bar" class="svelte-1az0vuu">40,320 left to check
+    <div role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="40320" style="width: 0%" class="svelte-1az0vuu">0 computed
+    </div></div>
 
   
 
-  
 
   
 </section></main>
