@@ -22,7 +22,7 @@
 	Created by
 	<a href="https://github.com/JanMalch" rel="noopener">JanMalch</a>
 	&middot;
-		Logo by <a href="https://fonts.google.com/icons?selected=Material+Icons&icon.query=clear+all" rel="noopener">Material Icons</a>
+		Logo and icons by <a href="https://fonts.google.com/icons?selected=Material+Icons" rel="noopener">Material Icons</a>
 	&middot;
 	<a href="https://github.com/JanMalch/permutations" rel="noopener">Source Code</a>
 	&middot;

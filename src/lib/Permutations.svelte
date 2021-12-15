@@ -9,6 +9,7 @@
   let done = false;
   let initialised = false;
   let xNext = 100;
+  let totalComputations = 0;
 
   let _results = new Set();
   let results = [];
@@ -37,7 +38,8 @@
     return true;
   });
   $: uniqueInputCount = new Set(parsedInput.text).size;
-  $: maxPermutations = factorial(parsedInput.text.length) / individualCounts().reduce((acc, count) => acc * factorial(count), 1);
+  $: maxPermutationsWithRepetitions = factorial(parsedInput.text.length);
+  $: maxPermutations = maxPermutationsWithRepetitions / individualCounts().reduce((acc, count) => acc * factorial(count), 1);
 
   function coerceArray<T>(value: T | T[]): T[] {
     return Array.isArray(value) ? value : [value];
@@ -106,6 +108,7 @@
       _results = new Set();
       results = [];
       xNext = Math.min(xNext, maxPermutations);
+      totalComputations = 0;
     });
     await next();
   }
@@ -149,17 +152,21 @@
 
   async function next() {
     loading = true;
-    for (let i = 0; i < xNext;) {
+    const initialXNext = xNext;
+    let remainingPermutations = maxPermutations - results.length;
+    for (let i = 0; i < initialXNext;) {
       const result = await getNextValue();
       if (result.done) {
         done = true;
         break;
       }
+      totalComputations++;
       const value = result.value.join("");
       if (!_results.has(value)) {
         _results.add(value);
         results = binaryInsert(results, value, (a, b) => a.localeCompare(b));
         i++;
+          xNext = Math.min(xNext, --remainingPermutations);
       }
     }
     if (!done) {
@@ -179,9 +186,9 @@
       _results = new Set();
       results = [];
       xNext = 100;
+      totalComputations = 0;
     });
   }
-
 </script>
 
 <section id="input">
@@ -199,7 +206,8 @@
   <div style="text-align: center; line-height: 1.65">
     <strong>{uniqueInputCount.toLocaleString()} of {parsedInput.text.length.toLocaleString()}</strong> elements are
     unique.<br />
-    There are <strong>{maxPermutations.toLocaleString()} permutations</strong> without repetitions.
+    There are {maxPermutationsWithRepetitions.toLocaleString()} possible permutations<br/>
+    and <strong>{maxPermutations.toLocaleString()}  without repetitions</strong>.
   </div>
 
   <div id="input-actions">
@@ -226,11 +234,28 @@
       <button on:click={() => xNext += 100} disabled="{!initialised || done || loading}" class="xnext-control">+</button>
     </div>
     <button on:click={next} disabled="{!initialised || done || loading}"
-            id="next">{ done ? 'Done!' : 'Load more'}</button>
+            id="next">{ loading ? 'Computing ...' : done ? 'Done!' : 'Load more'}</button>
   </div>
 
-  <p>Showing <strong>{filteredResults.length.toLocaleString()} of {results.length.toLocaleString()}</strong> computed
-    permutations.</p>
+  <div id="stats" style="display: inline-flex; align-items: center; gap: 8px; margin: 16px 0 8px; padding-right: 8px;">
+    <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24"
+         height="24px" viewBox="0 0 24 24" width="24px" fill="#ffffff">
+      <g><path d="M0,0h24 M24,24H0" fill="none"/><path d="M7,6h10l-5.01,6.3L7,6z M4.25,5.61C6.27,8.2,10,13,10,13v6c0,0.55,0.45,1,1,1h2c0.55,0,1-0.45,1-1v-6 c0,0,3.72-4.8,5.74-7.39C20.25,4.95,19.78,4,18.95,4H5.04C4.21,4,3.74,4.95,4.25,5.61z"/><path d="M0,0h24v24H0V0z" fill="none"/></g></svg>
+    <small>{filteredResults.length.toLocaleString()} / {results.length.toLocaleString()}</small>
+  </div>
+
+  {#if loading}
+  <div id="progress-bar">
+    { (maxPermutationsWithRepetitions - totalComputations).toLocaleString() } left to check
+    <div role="progressbar"
+         aria-valuenow="{totalComputations}"
+         aria-valuemin="{0}"
+         aria-valuemax="{maxPermutationsWithRepetitions}"
+         style="width: {totalComputations * 100 / maxPermutationsWithRepetitions}%">
+      { totalComputations.toLocaleString() } computed
+    </div>
+  </div>
+  {/if}
 
   {#if filteredResults.length > 0}
     <VirtualList items={filteredResults} let:item itemHeight="{32}" height="70vh">
@@ -328,6 +353,27 @@
     #x-next input:disabled {
         border-left: none;
         border-right: none;
+    }
+
+    #progress-bar {
+        position: relative;
+        height: 16px;
+        width: 100%;
+        background: #808080;
+        font-size: 0.7em;
+        margin-bottom: 16px;
+        text-align: right;
+        padding: 0 8px;
+        line-height: 16px;
+    }
+
+    #progress-bar > div {
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: var(--primary-color);
+        padding: 0 8px;
+        white-space: nowrap;
     }
 
     @media only screen and (max-width: 599px) {
