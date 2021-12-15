@@ -107,10 +107,11 @@
       initialised = true;
       _results = new Set();
       results = [];
-      xNext = Math.min(xNext, maxPermutations);
+      xNext = 100;
       totalComputations = 0;
     });
     await next();
+    xNext = Math.floor(maxPermutations * 0.1);
   }
 
   /**
@@ -226,12 +227,14 @@
            disabled="{!initialised}">
 
     <div id="x-next">
-      <button on:click={() => xNext = Math.max(1, xNext - 100)} disabled="{!initialised || done || loading}"
+      <button on:click={() => xNext = Math.max(1, xNext - Math.floor(maxPermutations * 0.1))}
+              disabled="{!initialised || done || loading || (xNext === 1)}"
               class="xnext-control">-
       </button>
       <input placeholder="Next ..." bind:value={xNext} type="number" max="{maxPermutations}" min="{1}"
              disabled="{!initialised || done || loading}">
-      <button on:click={() => xNext += 100} disabled="{!initialised || done || loading}" class="xnext-control">+</button>
+      <button on:click={() => xNext = Math.min(maxPermutations - results.length, xNext + Math.floor(maxPermutations * 0.1))}
+              disabled="{!initialised || done || loading || (xNext === maxPermutations - results.length)}" class="xnext-control">+</button>
     </div>
     <button on:click={next} disabled="{!initialised || done || loading}"
             id="next">{ loading ? 'Computing ...' : done ? 'Done!' : 'Load more'}</button>
