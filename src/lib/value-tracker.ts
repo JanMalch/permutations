@@ -32,17 +32,13 @@ export class ValueTracker {
     return false;
   }
 
-  addAll(values: Array<IteratorYieldResult<string>>): { someAdded: boolean, done: boolean } {
+  addAll(values: string[]): boolean {
     let someAdded = false;
-    let done = false;
     for (const value of values) {
-      if (value.done) {
-        done = true;
-        break;
-      }
-      someAdded = someAdded || this.add(value.value);
+      const valueAdded = this.add(value);
+      someAdded = someAdded || valueAdded;
     }
-    return { someAdded, done }
+    return someAdded;
   }
 
   reset() {

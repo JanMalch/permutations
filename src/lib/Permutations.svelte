@@ -69,18 +69,19 @@
   }
 
   async function next() {
+    // Technically the permutations could be divided by the bulk size,
+    // but having it like this doesn't hurt performance and instead
+    // prevents accidental errors when the bulk size in the web worker changes.
     for (let i = 0; i <= valueTracker.permutations; i++) {
       if (paused) {
         break;
       }
-      // FIXME: receive values in a bulk (~100) for better performance
-      const result = await getNextValue();
+      const result = await getNextValues();
       if (result.done) {
         done = true;
         break;
       }
-      const value = result.value.join("");
-      if (valueTracker.add(value)) {
+      if (valueTracker.addAll(result.values)) {
         results = valueTracker.results.slice(0);
       }
       totalComputations = valueTracker.totalComputations;

@@ -19,11 +19,11 @@ export function initGenerator(inputs: any[]): Promise<void> {
   });
 }
 
-export function getNextValue(): Promise<IteratorYieldResult<string[]>> {
+export function getNextValues(): Promise<{ done: boolean, values: string[] }> {
   return new Promise((resolve, reject) => {
-    worker.addEventListener('message', ({ data: { ok, result } }) => {
+    worker.addEventListener('message', ({ data: { ok, results } }) => {
       if (ok) {
-        resolve(result)
+        resolve(results)
       } else {
         reject()
       }
