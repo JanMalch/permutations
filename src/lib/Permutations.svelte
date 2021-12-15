@@ -77,14 +77,14 @@
         break;
       }
       const result = await getNextValues();
-      if (result.done) {
-        done = true;
-        break;
-      }
       if (valueTracker.addAll(result.values)) {
         results = valueTracker.results.slice(0);
       }
       totalComputations = valueTracker.totalComputations;
+      if (result.done) {
+        done = true;
+        break;
+      }
     }
   }
 
